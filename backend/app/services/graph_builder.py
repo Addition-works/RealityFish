@@ -18,6 +18,7 @@ from ..models.task import TaskManager, TaskStatus
 from ..utils.zep_paging import fetch_all_nodes, fetch_all_edges
 from .text_processor import TextProcessor
 from ..utils.locale import t, get_locale, set_locale
+from ..utils.trace_logger import TraceLogger
 
 
 @dataclass
@@ -43,13 +44,14 @@ class GraphBuilderService:
     负责调用Zep API构建知识图谱
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, simulation_id: Optional[str] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
         if not self.api_key:
             raise ValueError("ZEP_API_KEY 未配置")
         
         self.client = Zep(api_key=self.api_key)
         self.task_manager = TaskManager()
+        self._simulation_id = simulation_id
     
     def build_graph_async(
         self,
@@ -110,7 +112,17 @@ class GraphBuilderService:
     ):
         """图谱构建工作线程"""
         set_locale(locale)
+        trace = TraceLogger("step1b_graph_build", self._simulation_id) if self._simulation_id else None
         try:
+            if trace:
+                trace.section("Graph Build Start")
+                trace.log("INPUT", "text_length", len(text))
+                trace.log("INPUT", "ontology", ontology)
+                trace.log("PARAM", "graph_name", graph_name)
+                trace.log("PARAM", "chunk_size", chunk_size)
+                trace.log("PARAM", "chunk_overlap", chunk_overlap)
+                trace.log("PARAM", "batch_size", batch_size)
+
             self.task_manager.update_task(
                 task_id,
                 status=TaskStatus.PROCESSING,
@@ -118,42 +130,45 @@ class GraphBuilderService:
                 message=t('progress.startBuildingGraph')
             )
             
-            # 1. 创建图谱
             graph_id = self.create_graph(graph_name)
+            if trace:
+                trace.log("OUTPUT", "created_graph_id", graph_id)
             self.task_manager.update_task(
                 task_id,
                 progress=10,
                 message=t('progress.graphCreated', graphId=graph_id)
             )
             
-            # 2. 设置本体
             self.set_ontology(graph_id, ontology)
+            if trace:
+                trace.log("STATUS", "ontology_set", f"Applied to graph {graph_id}")
             self.task_manager.update_task(
                 task_id,
                 progress=15,
                 message=t('progress.ontologySet')
             )
             
-            # 3. 文本分块
             chunks = TextProcessor.split_text(text, chunk_size, chunk_overlap)
             total_chunks = len(chunks)
+            if trace:
+                trace.log("OUTPUT", "text_chunks", {"count": total_chunks, "sample_first": chunks[0][:200] if chunks else ""})
             self.task_manager.update_task(
                 task_id,
                 progress=20,
                 message=t('progress.textSplit', count=total_chunks)
             )
             
-            # 4. 分批发送数据
             episode_uuids = self.add_text_batches(
                 graph_id, chunks, batch_size,
                 lambda msg, prog: self.task_manager.update_task(
                     task_id,
-                    progress=20 + int(prog * 0.4),  # 20-60%
+                    progress=20 + int(prog * 0.4),
                     message=msg
                 )
             )
+            if trace:
+                trace.log("OUTPUT", "episode_uuids", episode_uuids)
             
-            # 5. 等待Zep处理完成
             self.task_manager.update_task(
                 task_id,
                 progress=60,
@@ -164,12 +179,13 @@ class GraphBuilderService:
                 episode_uuids,
                 lambda msg, prog: self.task_manager.update_task(
                     task_id,
-                    progress=60 + int(prog * 0.3),  # 60-90%
+                    progress=60 + int(prog * 0.3),
                     message=msg
                 )
             )
+            if trace:
+                trace.log("STATUS", "episodes_processed", f"{len(episode_uuids)} episodes done")
             
-            # 6. 获取图谱信息
             self.task_manager.update_task(
                 task_id,
                 progress=90,
@@ -177,8 +193,9 @@ class GraphBuilderService:
             )
             
             graph_info = self._get_graph_info(graph_id)
+            if trace:
+                trace.log("OUTPUT", "graph_info", graph_info.to_dict())
             
-            # 完成
             self.task_manager.complete_task(task_id, {
                 "graph_id": graph_id,
                 "graph_info": graph_info.to_dict(),
@@ -188,6 +205,8 @@ class GraphBuilderService:
         except Exception as e:
             import traceback
             error_msg = f"{str(e)}\n{traceback.format_exc()}"
+            if trace:
+                trace.log("ERROR", "graph_build_failed", error_msg)
             self.task_manager.fail_task(task_id, error_msg)
     
     def create_graph(self, name: str) -> str:

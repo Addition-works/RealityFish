@@ -18,6 +18,7 @@ from .zep_entity_reader import ZepEntityReader, FilteredEntities
 from .oasis_profile_generator import OasisProfileGenerator, OasisAgentProfile
 from .simulation_config_generator import SimulationConfigGenerator, SimulationParameters
 from ..utils.locale import t
+from ..utils.trace_logger import TraceLogger, LLMTraceHook
 
 logger = get_logger('mirofish.simulation')
 
@@ -269,11 +270,18 @@ class SimulationManager:
             
             sim_dir = self._get_simulation_dir(simulation_id)
             
+            LLMTraceHook.install(simulation_id)
+            _trace = TraceLogger("pipeline_orchestrator", simulation_id)
+            _trace.section("Pipeline Start")
+            _trace.log("INPUT", "simulation_id", simulation_id)
+            _trace.log("INPUT", "simulation_requirement", simulation_requirement)
+            _trace.log("INPUT", "document_text_length", len(document_text))
+            
             # ========== 阶段1: 读取并过滤实体 ==========
             if progress_callback:
                 progress_callback("reading", 0, t('progress.connectingZepGraph'))
             
-            reader = ZepEntityReader()
+            reader = ZepEntityReader(simulation_id=simulation_id)
             
             if progress_callback:
                 progress_callback("reading", 30, t('progress.readingNodeData'))
@@ -313,7 +321,7 @@ class SimulationManager:
                 )
             
             # 传入graph_id以启用Zep检索功能，获取更丰富的上下文
-            generator = OasisProfileGenerator(graph_id=state.graph_id)
+            generator = OasisProfileGenerator(graph_id=state.graph_id, simulation_id=simulation_id)
             
             def profile_progress(current, total, msg):
                 if progress_callback:
@@ -390,7 +398,7 @@ class SimulationManager:
                     total=3
                 )
             
-            config_generator = SimulationConfigGenerator()
+            config_generator = SimulationConfigGenerator(simulation_id=simulation_id)
             
             if progress_callback:
                 progress_callback(
@@ -442,6 +450,15 @@ class SimulationManager:
             state.status = SimulationStatus.READY
             self._save_simulation_state(state)
             
+            _trace.section("Pipeline Complete")
+            _trace.log("OUTPUT", "final_state", {
+                "entities_count": state.entities_count,
+                "profiles_count": state.profiles_count,
+                "entity_types": state.entity_types,
+                "config_generated": state.config_generated,
+            })
+            LLMTraceHook.uninstall()
+            
             logger.info(f"模拟准备完成: {simulation_id}, "
                        f"entities={state.entities_count}, profiles={state.profiles_count}")
             
@@ -454,6 +471,7 @@ class SimulationManager:
             state.status = SimulationStatus.FAILED
             state.error = str(e)
             self._save_simulation_state(state)
+            LLMTraceHook.uninstall()
             raise
     
     def get_simulation(self, simulation_id: str) -> Optional[SimulationState]:

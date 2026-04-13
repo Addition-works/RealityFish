@@ -62,11 +62,12 @@ def create_app(config_class=Config):
         logger.debug(f"响应: {response.status_code}")
         return response
     
-    # 注册蓝图
-    from .api import graph_bp, simulation_bp, report_bp
+    # Register blueprints
+    from .api import graph_bp, simulation_bp, report_bp, reality_bp
     app.register_blueprint(graph_bp, url_prefix='/api/graph')
     app.register_blueprint(simulation_bp, url_prefix='/api/simulation')
     app.register_blueprint(report_bp, url_prefix='/api/report')
+    app.register_blueprint(reality_bp, url_prefix='/api/reality')
     
     # 健康检查
     @app.route('/health')

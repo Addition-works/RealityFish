@@ -23,6 +23,7 @@ from ..utils.logger import get_logger
 from ..utils.locale import get_locale, set_locale
 from .zep_graph_memory_updater import ZepGraphMemoryManager
 from .simulation_ipc import SimulationIPCClient, CommandType, IPCResponse
+from ..utils.trace_logger import TraceLogger
 
 logger = get_logger('mirofish.simulation_runner')
 
@@ -400,6 +401,19 @@ class SimulationRunner:
         
         if not os.path.exists(script_path):
             raise ValueError(f"脚本不存在: {script_path}")
+
+        trace = TraceLogger("step3_simulation_run", simulation_id)
+        trace.section("Simulation Start")
+        trace.log("INPUT", "simulation_id", simulation_id)
+        trace.log("INPUT", "platform", platform)
+        trace.log("INPUT", "config_summary", {
+            "total_rounds": total_rounds,
+            "total_hours": total_hours,
+            "minutes_per_round": minutes_per_round,
+            "max_rounds": max_rounds,
+            "enable_graph_memory": enable_graph_memory_update,
+        })
+        trace.log("PARAM", "script_path", script_path)
         
         # 创建动作队列
         action_queue = Queue()
@@ -544,12 +558,36 @@ class SimulationRunner:
             
             state.twitter_running = False
             state.reddit_running = False
+
+            trace = TraceLogger("step3_simulation_run", simulation_id)
+            trace.section("Simulation Complete")
+            trace.log("OUTPUT", "final_state", {
+                "status": state.runner_status.value,
+                "twitter_actions": state.twitter_actions_count,
+                "reddit_actions": state.reddit_actions_count,
+                "current_round": state.current_round,
+                "total_rounds": state.total_rounds,
+                "error": state.error,
+            })
+
             cls._save_run_state(state)
             
         except Exception as e:
             logger.error(f"监控线程异常: {simulation_id}, error={str(e)}")
             state.runner_status = RunnerStatus.FAILED
             state.error = str(e)
+
+            trace = TraceLogger("step3_simulation_run", simulation_id)
+            trace.section("Simulation Complete")
+            trace.log("OUTPUT", "final_state", {
+                "status": state.runner_status.value,
+                "twitter_actions": state.twitter_actions_count,
+                "reddit_actions": state.reddit_actions_count,
+                "current_round": state.current_round,
+                "total_rounds": state.total_rounds,
+                "error": state.error,
+            })
+
             cls._save_run_state(state)
         
         finally:

@@ -53,8 +53,11 @@ mytest/
 backend/logs/
 *.log
 
-# 上传文件
+# Upload files
 backend/uploads/
+
+# E2E test outputs
+backend/tests/e2e_output/
 
 # Docker 数据
 data/

@@ -4,6 +4,7 @@
     <nav class="navbar">
       <div class="nav-brand">MIROFISH</div>
       <div class="nav-links">
+        <router-link to="/reality" class="reality-link">RealityFish Pipeline</router-link>
         <LanguageSwitcher />
         <a href="https://github.com/666ghj/MiroFish" target="_blank" class="github-link">
           {{ $t('nav.visitGithub') }} <span class="arrow">↗</span>
@@ -358,6 +359,22 @@ const startSimulation = () => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.reality-link {
+  color: #ff4500;
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border: 1px solid #ff4500;
+  transition: all 0.2s;
+}
+
+.reality-link:hover {
+  background: #ff4500;
+  color: #fff;
 }
 
 .github-link {

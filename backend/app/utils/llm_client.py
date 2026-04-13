@@ -5,10 +5,12 @@ LLM客户端封装
 
 import json
 import re
+import traceback
 from typing import Optional, Dict, Any, List
 from openai import OpenAI
 
 from ..config import Config
+from .trace_logger import LLMTraceHook
 
 
 class LLMClient:
@@ -59,12 +61,27 @@ class LLMClient:
         }
         
         if response_format:
-            kwargs["response_format"] = response_format
+            is_anthropic = self.base_url and "anthropic" in self.base_url
+            if not is_anthropic:
+                kwargs["response_format"] = response_format
         
         response = self.client.chat.completions.create(**kwargs)
         content = response.choices[0].message.content
-        # 部分模型（如MiniMax M2.5）会在content中包含<think>思考内容，需要移除
         content = re.sub(r'<think>[\s\S]*?</think>', '', content).strip()
+
+        hook = LLMTraceHook.get()
+        if hook:
+            caller = traceback.extract_stack()[-2].name
+            hook.record(
+                caller=caller,
+                messages=messages,
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                response_text=content,
+                response_format=response_format,
+            )
+
         return content
     
     def chat_json(

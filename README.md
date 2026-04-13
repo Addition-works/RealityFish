@@ -1,203 +1,271 @@
 <div align="center">
 
-<img src="./static/image/MiroFish_logo_compressed.jpeg" alt="MiroFish Logo" width="75%"/>
+# RealityFish
 
-<a href="https://trendshift.io/repositories/16144" target="_blank"><img src="https://trendshift.io/api/badge/repositories/16144" alt="666ghj%2FMiroFish | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+**Understand the present. Simulate the future.**
 
-简洁通用的群体智能引擎，预测万物
-</br>
-<em>A Simple and Universal Swarm Intelligence Engine, Predicting Anything</em>
+A reality-grounded simulation engine forked from [MiroFish](https://github.com/666ghj/MiroFish).
 
-<a href="https://www.shanda.com/" target="_blank"><img src="./static/image/shanda_logo.png" alt="666ghj%2MiroFish | Shanda" height="40"/></a>
-
-[![GitHub Stars](https://img.shields.io/github/stars/666ghj/MiroFish?style=flat-square&color=DAA520)](https://github.com/666ghj/MiroFish/stargazers)
-[![GitHub Watchers](https://img.shields.io/github/watchers/666ghj/MiroFish?style=flat-square)](https://github.com/666ghj/MiroFish/watchers)
-[![GitHub Forks](https://img.shields.io/github/forks/666ghj/MiroFish?style=flat-square)](https://github.com/666ghj/MiroFish/network)
-[![Docker](https://img.shields.io/badge/Docker-Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://hub.docker.com/)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/666ghj/MiroFish)
-
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat-square&logo=discord&logoColor=white)](http://discord.gg/ePf5aPaHnA)
-[![X](https://img.shields.io/badge/X-Follow-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/mirofish_ai)
-[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/mirofish_ai/)
-
-[English](./README.md) | [中文文档](./README-ZH.md)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11--3.12-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js&logoColor=white)](https://vuejs.org)
 
 </div>
 
-## ⚡ Overview
+---
 
-**MiroFish** is a next-generation AI prediction engine powered by multi-agent technology. By extracting seed information from the real world (such as breaking news, policy drafts, or financial signals), it automatically constructs a high-fidelity parallel digital world. Within this space, thousands of intelligent agents with independent personalities, long-term memory, and behavioral logic freely interact and undergo social evolution. You can inject variables dynamically from a "God's-eye view" to precisely deduce future trajectories — **rehearse the future in a digital sandbox, and win decisions after countless simulations**.
+## What is RealityFish?
 
-> You only need to: Upload seed materials (data analysis reports or interesting novel stories) and describe your prediction requirements in natural language</br>
-> MiroFish will return: A detailed prediction report and a deeply interactive high-fidelity digital world
+MiroFish builds simulated worlds from seed documents and runs multi-agent predictions. **RealityFish extends this** by grounding the simulation in *real* social media entities before predicting how they'll react to a future event.
 
-### Our Vision
+The core idea is a **two-phase pipeline**:
 
-MiroFish is dedicated to creating a swarm intelligence mirror that maps reality. By capturing the collective emergence triggered by individual interactions, we break through the limitations of traditional prediction:
+| Phase | Name | What happens |
+|-------|------|-------------|
+| **1** | **Existing Reality** | Scrape real X/Twitter and Reddit users, extract entities, build a knowledge graph of the *actual* conversation landscape, generate an Existing Reality Report |
+| **2** | **Future Simulation** | Inject a scenario (e.g. a product launch), convert real entities into OASIS simulation agents with calibrated awareness probabilities, run the simulation, generate a Future Prediction Report |
 
-- **At the Macro Level**: We are a rehearsal laboratory for decision-makers, allowing policies and public relations to be tested at zero risk
-- **At the Micro Level**: We are a creative sandbox for individual users — whether deducing novel endings or exploring imaginative scenarios, everything can be fun, playful, and accessible
+### How is this different from MiroFish?
 
-From serious predictions to playful simulations, we let every "what if" see its outcome, making it possible to predict anything.
+| Capability | MiroFish | RealityFish |
+|-----------|----------|-------------|
+| **Data source** | Uploaded seed documents | Real social media scraping (X via Apify, Reddit via PRAW) + seed documents |
+| **Entities** | LLM-generated from text | Real users with verified bios, follower counts, post history |
+| **Entity validation** | None | Audience scoring against thesis profiles, human review step |
+| **Awareness model** | All agents aware of scenario | Calibrated per-agent awareness & caring probabilities |
+| **Reports** | Single prediction report | Two reports: Existing Reality + Future Prediction |
+| **Anti-hallucination** | None | Fake tool-result stripping, prompt constraints, entity verification |
+| **Focus groups** | Not present | LLM-driven focus group discussions before report generation |
 
-## 🌐 Live Demo
+## Architecture
 
-Welcome to visit our online demo environment and experience a prediction simulation on trending public opinion events we've prepared for you: [mirofish-live-demo](https://666ghj.github.io/mirofish-demo/)
-
-## 📸 Screenshots
-
-<div align="center">
-<table>
-<tr>
-<td><img src="./static/image/Screenshot/运行截图1.png" alt="Screenshot 1" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图2.png" alt="Screenshot 2" width="100%"/></td>
-</tr>
-<tr>
-<td><img src="./static/image/Screenshot/运行截图3.png" alt="Screenshot 3" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图4.png" alt="Screenshot 4" width="100%"/></td>
-</tr>
-<tr>
-<td><img src="./static/image/Screenshot/运行截图5.png" alt="Screenshot 5" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图6.png" alt="Screenshot 6" width="100%"/></td>
-</tr>
-</table>
-</div>
-
-## 🎬 Demo Videos
-
-### 1. Wuhan University Public Opinion Simulation + MiroFish Project Introduction
-
-<div align="center">
-<a href="https://www.bilibili.com/video/BV1VYBsBHEMY/" target="_blank"><img src="./static/image/武大模拟演示封面.png" alt="MiroFish Demo Video" width="75%"/></a>
-
-Click the image to watch the complete demo video for prediction using BettaFish-generated "Wuhan University Public Opinion Report"
-</div>
-
-### 2. Dream of the Red Chamber Lost Ending Simulation
-
-<div align="center">
-<a href="https://www.bilibili.com/video/BV1cPk3BBExq" target="_blank"><img src="./static/image/红楼梦模拟推演封面.jpg" alt="MiroFish Demo Video" width="75%"/></a>
-
-Click the image to watch MiroFish's deep prediction of the lost ending based on hundreds of thousands of words from the first 80 chapters of "Dream of the Red Chamber"
-</div>
-
-> **Financial Prediction**, **Political News Prediction** and more examples coming soon...
-
-## 🔄 Workflow
-
-1. **Graph Building**: Seed extraction & Individual/collective memory injection & GraphRAG construction
-2. **Environment Setup**: Entity relationship extraction & Persona generation & Agent configuration injection
-3. **Simulation**: Dual-platform parallel simulation & Auto-parse prediction requirements & Dynamic temporal memory updates
-4. **Report Generation**: ReportAgent with rich toolset for deep interaction with post-simulation environment
-5. **Deep Interaction**: Chat with any agent in the simulated world & Interact with ReportAgent
-
-## 🚀 Quick Start
-
-### Option 1: Source Code Deployment (Recommended)
-
-#### Prerequisites
-
-| Tool | Version | Description | Check Installation |
-|------|---------|-------------|-------------------|
-| **Node.js** | 18+ | Frontend runtime, includes npm | `node -v` |
-| **Python** | ≥3.11, ≤3.12 | Backend runtime | `python --version` |
-| **uv** | Latest | Python package manager | `uv --version` |
-
-#### 1. Configure Environment Variables
-
-```bash
-# Copy the example configuration file
-cp .env.example .env
-
-# Edit the .env file and fill in the required API keys
+```
+Thesis (.md)
+    │
+    ▼
+┌──────────────────────────────────────────────────┐
+│  Phase 1: Existing Reality                       │
+│                                                  │
+│  ThesisParser → SocialScraper → EntityExtractor  │
+│       → WorldBuilder → Zep Knowledge Graph       │
+│       → Human Review → RealityReportAdapter      │
+│       → FocusGroupEngine → Existing Reality Rpt  │
+└──────────────────────────────────────────────────┘
+    │
+    ▼  Scenario injection
+┌──────────────────────────────────────────────────┐
+│  Phase 2: Future Simulation                      │
+│                                                  │
+│  PhaseBridge → OasisAgentProfiles + Awareness    │
+│       → SimulationConfigGenerator                │
+│       → OASIS Simulation (Twitter + Reddit)      │
+│       → RealityReportAdapter (future mode)       │
+│       → Future Prediction Report                 │
+└──────────────────────────────────────────────────┘
 ```
 
-**Required Environment Variables:**
+## New Backend Services
+
+These services are **new to RealityFish** (not present in upstream MiroFish):
+
+| Service | Purpose |
+|---------|---------|
+| `thesis_parser.py` | Parses structured markdown thesis into research question, scope, audience profiles |
+| `social_scraper.py` | X/Twitter scraping via Apify, Reddit scraping via PRAW |
+| `entity_extractor.py` | LLM-driven entity identification, deduplication, enrichment, audience scoring |
+| `world_builder.py` | Orchestrates the full Phase 1 data ingestion pipeline |
+| `reality_graph_builder.py` | Builds Zep knowledge graph from real scraped entities |
+| `awareness_engine.py` | Computes per-agent awareness and caring probabilities |
+| `phase_bridge.py` | Converts Phase 1 `ExtractedEntity` into OASIS `AgentProfile` + `AwarenessProfile` |
+| `focus_group_engine.py` | Runs LLM-driven focus group discussions |
+| `reality_report_adapter.py` | Adapts `ReportAgent` with mode-specific prompts (existing vs future) |
+| `reality_report_prompts.py` | Prompt templates with anti-hallucination rules |
+
+## Modified Upstream Services
+
+These MiroFish services were patched for RealityFish:
+
+- **`report_agent.py`** — Added `_strip_fake_tool_results()` to prevent LLM hallucination of fabricated tool outputs
+- **`zep_tools.py`** — Translated Chinese sub-query generation to English
+- **`simulation_config_generator.py`** — Adapted to accept `EntityNode` shims from real scraped profiles
+
+## Quick Start
+
+### Prerequisites
+
+| Tool | Version | Check |
+|------|---------|-------|
+| Node.js | 18+ | `node -v` |
+| Python | 3.11–3.12 | `python --version` |
+| uv | Latest | `uv --version` |
+
+### 1. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+**Required variables:**
 
 ```env
-# LLM API Configuration (supports any LLM API with OpenAI SDK format)
-# Recommended: Alibaba Qwen-plus model via Bailian Platform: https://bailian.console.aliyun.com/
-# High consumption, try simulations with fewer than 40 rounds first
-LLM_API_KEY=your_api_key
-LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-LLM_MODEL_NAME=qwen-plus
+# LLM API (OpenAI SDK-compatible endpoint)
+LLM_API_KEY=your_key
+LLM_BASE_URL=https://your-llm-provider/v1
+LLM_MODEL_NAME=your-model
 
-# Zep Cloud Configuration
-# Free monthly quota is sufficient for simple usage: https://app.getzep.com/
-ZEP_API_KEY=your_zep_api_key
+# Zep Cloud knowledge graph
+ZEP_API_KEY=your_zep_key
 ```
 
-#### 2. Install Dependencies
+**RealityFish-specific variables (for social scraping):**
+
+```env
+# Apify — X/Twitter scraping
+APIFY_API_TOKEN=your_apify_token
+
+# Reddit API (register at https://www.reddit.com/prefs/apps)
+REDDIT_CLIENT_ID=your_client_id
+REDDIT_CLIENT_SECRET=your_client_secret
+REDDIT_USER_AGENT=realityfish-bot/1.0
+```
+
+**Optional tuning:**
+
+```env
+OASIS_DEFAULT_MAX_ROUNDS=10
+FOCUS_GROUPS_ENABLED=true
+AWARENESS_BASE_PROBABILITY=0.15
+TOPIC_AWARE_BOOST=0.6
+```
+
+### 2. Install Dependencies
 
 ```bash
-# One-click installation of all dependencies (root + frontend + backend)
 npm run setup:all
 ```
 
-Or install step by step:
+Or step by step:
 
 ```bash
-# Install Node dependencies (root + frontend)
-npm run setup
-
-# Install Python dependencies (backend, auto-creates virtual environment)
-npm run setup:backend
+npm run setup          # Node dependencies (root + frontend)
+npm run setup:backend  # Python dependencies (auto-creates venv)
 ```
 
-#### 3. Start Services
+### 3. Start Services
 
 ```bash
-# Start both frontend and backend (run from project root)
 npm run dev
 ```
 
-**Service URLs:**
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:5001`
 
-**Start Individually:**
+### Using the RealityFish Pipeline
+
+1. Navigate to `http://localhost:3000` and click **RealityFish Pipeline** in the nav bar
+2. Upload a thesis `.md` file defining your research question and audience profiles
+3. The system scrapes X and Reddit, extracts and enriches entities
+4. Review the entity pool and approve
+5. Generate the **Existing Reality Report**
+6. Define a future scenario (e.g. "Google launches AI Studio Mobile")
+7. The system converts entities to OASIS agents with awareness calibration and runs the simulation
+8. View the **Future Prediction Report**
+
+## API Routes
+
+All RealityFish routes are under `/api/reality/`:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/thesis/upload` | Parse thesis markdown |
+| POST | `/world/build` | Start world-building pipeline |
+| GET | `/world/status/<task_id>` | Poll async task status |
+| GET | `/world/review/<project_id>` | Get entity pool for review |
+| POST | `/world/approve/<project_id>` | Approve entity pool |
+| POST | `/reality/report` | Generate Existing Reality report |
+| POST | `/focus-group/run` | Run focus group discussions |
+| POST | `/scenario/inject` | Set future scenario |
+| POST | `/future/simulate` | Run Phase 2 simulation + report |
+| GET | `/project/<project_id>` | Get project state |
+
+The original MiroFish routes (`/api/graph`, `/api/simulation`, `/api/report`) remain available for the classic workflow.
+
+## Testing
 
 ```bash
-npm run backend   # Start backend only
-npm run frontend  # Start frontend only
+cd backend
+
+# Unit tests
+python -m pytest tests/test_thesis_parser.py
+python -m pytest tests/test_entity_extractor.py
+python -m pytest tests/test_social_scraper.py
+python -m pytest tests/test_phase_bridge.py
+python -m pytest tests/test_awareness_engine.py
+
+# E2E tests (require API keys)
+python tests/e2e_pipeline_test.py      # Full Phase 1 pipeline
+python tests/e2e_reality_report_test.py # Phase 1 report generation
+python tests/e2e_phase2_test.py         # Full Phase 2 pipeline
 ```
 
-### Option 2: Docker Deployment
+## Roadmap
 
-```bash
-# 1. Configure environment variables (same as source deployment)
-cp .env.example .env
+### Completed
 
-# 2. Pull image and start
-docker compose up -d
-```
+- [x] **Thesis parser** — structured markdown → research question, scope, audience profiles
+- [x] **Social scraper** — X/Twitter (Apify) + Reddit (PRAW) keyword and username search
+- [x] **Entity extraction & enrichment** — LLM-driven identification, deduplication, bio/followers/audience scoring
+- [x] **World builder** — orchestrated Phase 1 pipeline with async deep scraping
+- [x] **Zep knowledge graph** — entities, relationships, and focus group transcripts stored in Zep Cloud
+- [x] **Human review step** — entity pool review and approval before report generation
+- [x] **Existing Reality report** — ReACT-based report grounded in real scraped data
+- [x] **Anti-hallucination** — fake tool-result stripping, prompt constraints, entity verification
+- [x] **Focus groups** — LLM-driven panel discussions integrated into report generation
+- [x] **Phase Bridge** — convert real entities → OASIS agent profiles with awareness probabilities
+- [x] **Future simulation** — OASIS multi-agent sim (Twitter + Reddit) from real entity profiles
+- [x] **Future Prediction report** — scenario-aware report from simulation output
+- [x] **Backend API** — full `/api/reality/` blueprint with async task management
+- [x] **RealityView.vue** — dedicated frontend view for the two-phase pipeline
+- [x] **Bug fix upstream** — filed [MiroFish #529](https://github.com/666ghj/MiroFish/issues/529) for ReACT hallucination bug
 
-Reads `.env` from root directory by default, maps ports `3000 (frontend) / 5001 (backend)`
+### Remaining Work
 
-> Mirror address for faster pulling is provided as comments in `docker-compose.yml`, replace if needed.
+#### Frontend (high priority)
 
-## 📬 Join the Conversation
+- [ ] **Rebrand Home.vue** — replace MiroFish logo, branding, and hero copy with RealityFish identity
+- [ ] **Replace `MiroFish_logo_left.jpeg`** in `frontend/src/assets/logo/` with a RealityFish logo asset
+- [ ] **i18n for RealityView** — currently English-hardcoded; wire into the `locales/en.json` / `locales/zh.json` system
+- [ ] **Unify navigation** — decide whether `/reality` is the primary entry point or coexists with the classic MiroFish `/process/:projectId` flow; update `Home.vue` accordingly
+- [ ] **Report viewer for two-phase reports** — the existing `ReportView.vue` renders one report; add UI to view Existing Reality and Future Prediction reports side by side or sequentially
+- [ ] **Entity review UX** — the entity grid in `RealityView.vue` is functional but basic; add filtering, sorting, inline editing, and batch approval/rejection
+- [ ] **Scenario template library** — pre-built scenario templates users can select instead of free-text only
+- [ ] **Error handling & loading states** — add toast notifications, retry buttons, and better progress messaging across all steps
 
-<div align="center">
-<img src="./static/image/QQ群.png" alt="QQ Group" width="60%"/>
-</div>
+#### Backend (high priority)
 
-&nbsp;
+- [ ] **Unified run folder** — all outputs for a single pipeline run (entity pool, reality report, simulation config, simulation actions, awareness config, future report, focus group transcripts) must land in one folder keyed by a single `run_id`, not scattered across `uploads/reports/report_<hash>` and `uploads/simulations/sim_<hash>` with separate IDs
+- [ ] **Post-simulation agent chat (Phase 3)** — after the Future Prediction report, let the user open MiroFish's existing `InteractionView` chat to talk directly with the simulated agents; use this to explore "what would you need to see to react differently?" and iterate on strategy before re-running
 
-The MiroFish team is recruiting full-time/internship positions. If you're interested in multi-agent simulation and LLM applications, feel free to send your resume to: **mirofish@shanda.com**
+#### Backend (medium priority)
 
-## 📄 Acknowledgments
+- [ ] **Scraper rate-limit resilience** — add exponential backoff and retry logic for Apify and PRAW API failures
+- [ ] **LLM rate-limit handling in OASIS** — simulation stalls when the LLM provider rate-limits; add queuing, backoff, or provider rotation
+- [ ] **Entity deduplication across platforms** — same person on X and Reddit should merge into one entity
+- [ ] **Awareness config fed into OASIS agent behavior** — `awareness_config.json` is generated but OASIS agents don't yet read per-agent awareness probabilities at runtime; they all participate equally
+- [ ] **Simulation result persistence** — save simulation metadata (rounds completed, action counts, duration) to a project-level summary for the UI
+- [ ] **Report comparison endpoint** — API route to return both Phase 1 and Phase 2 reports for side-by-side rendering
 
-**MiroFish has received strategic support and incubation from Shanda Group!**
+#### Infrastructure & polish
 
-MiroFish's simulation engine is powered by **[OASIS (Open Agent Social Interaction Simulations)](https://github.com/camel-ai/oasis)**, We sincerely thank the CAMEL-AI team for their open-source contributions!
+- [ ] **CI pipeline** — GitHub Actions for linting, unit tests, and E2E smoke tests
+- [ ] **Docker update** — `Dockerfile` and `docker-compose.yml` still reference MiroFish; update for RealityFish env vars
+- [ ] **Seed document examples** — add sample thesis `.md` files to `seed_documents/` so new users can try the pipeline immediately
+- [ ] **Documentation** — API reference, thesis format spec, and architecture deep-dive
 
-## 📈 Project Statistics
+## Acknowledgments
 
-<a href="https://www.star-history.com/#666ghj/MiroFish&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&legend=top-left" />
- </picture>
-</a>
+RealityFish is forked from [MiroFish](https://github.com/666ghj/MiroFish) by the 666ghj team, which received strategic support from Shanda Group. The simulation engine is powered by [OASIS](https://github.com/camel-ai/oasis) from CAMEL-AI.
+
+## License
+
+[AGPL-3.0](LICENSE)

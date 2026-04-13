@@ -11,6 +11,7 @@ from zep_cloud.client import Zep
 
 from ..config import Config
 from ..utils.logger import get_logger
+from ..utils.trace_logger import TraceLogger
 from ..utils.zep_paging import fetch_all_nodes, fetch_all_edges
 
 logger = get_logger('mirofish.zep_entity_reader')
@@ -78,12 +79,13 @@ class ZepEntityReader:
     3. 获取每个实体的相关边和关联节点信息
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, simulation_id: Optional[str] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
         if not self.api_key:
             raise ValueError("ZEP_API_KEY 未配置")
         
         self.client = Zep(api_key=self.api_key)
+        self._trace = TraceLogger("step2a_entity_reader", simulation_id) if simulation_id else None
     
     def _call_with_retry(
         self, 
@@ -234,13 +236,27 @@ class ZepEntityReader:
             FilteredEntities: 过滤后的实体集合
         """
         logger.info(f"开始筛选图谱 {graph_id} 的实体...")
+        if self._trace is not None:
+            self._trace.log(
+                "INPUT",
+                "filter_defined_entities",
+                {
+                    "graph_id": graph_id,
+                    "defined_entity_types": defined_entity_types,
+                    "enrich_with_edges": enrich_with_edges,
+                },
+            )
         
         # 获取所有节点
         all_nodes = self.get_all_nodes(graph_id)
         total_count = len(all_nodes)
+        if self._trace is not None:
+            self._trace.log("STATE", "all_nodes_count", len(all_nodes))
         
         # 获取所有边（用于后续关联查找）
         all_edges = self.get_all_edges(graph_id) if enrich_with_edges else []
+        if self._trace is not None:
+            self._trace.log("STATE", "all_edges_count", len(all_edges))
         
         # 构建节点UUID到节点数据的映射
         node_map = {n["uuid"]: n for n in all_nodes}
@@ -323,12 +339,23 @@ class ZepEntityReader:
         logger.info(f"筛选完成: 总节点 {total_count}, 符合条件 {len(filtered_entities)}, "
                    f"实体类型: {entity_types_found}")
         
-        return FilteredEntities(
+        result = FilteredEntities(
             entities=filtered_entities,
             entity_types=entity_types_found,
             total_count=total_count,
             filtered_count=len(filtered_entities),
         )
+        if self._trace is not None:
+            self._trace.log(
+                "OUTPUT",
+                "FilteredEntities_summary",
+                {
+                    "total_count": result.total_count,
+                    "filtered_count": result.filtered_count,
+                    "entity_types": list(result.entity_types),
+                },
+            )
+        return result
     
     def get_entity_with_context(
         self, 

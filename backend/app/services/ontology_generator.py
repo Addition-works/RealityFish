@@ -9,6 +9,7 @@ import re
 from typing import Dict, Any, List, Optional
 from ..utils.llm_client import LLMClient
 from ..utils.locale import get_language_instruction
+from ..utils.trace_logger import TraceLogger
 
 logger = logging.getLogger(__name__)
 
@@ -179,8 +180,9 @@ class OntologyGenerator:
     分析文本内容，生成实体和关系类型定义
     """
     
-    def __init__(self, llm_client: Optional[LLMClient] = None):
+    def __init__(self, llm_client: Optional[LLMClient] = None, simulation_id: Optional[str] = None):
         self.llm_client = llm_client or LLMClient()
+        self._trace = TraceLogger("step1a_ontology", simulation_id) if simulation_id else None
     
     def generate(
         self,
@@ -213,15 +215,26 @@ class OntologyGenerator:
             {"role": "user", "content": user_message}
         ]
         
-        # 调用LLM
+        if self._trace:
+            self._trace.section("Ontology Generation")
+            self._trace.log("INPUT", "document_texts", document_texts)
+            self._trace.log("INPUT", "simulation_requirement", simulation_requirement)
+            self._trace.log("INPUT", "system_prompt", system_prompt)
+            self._trace.log("INPUT", "user_message", user_message)
+        
         result = self.llm_client.chat_json(
             messages=messages,
             temperature=0.3,
-            max_tokens=4096
+            max_tokens=8192
         )
         
-        # 验证和后处理
+        if self._trace:
+            self._trace.log("LLM_RESPONSE", "raw_ontology_json", result)
+        
         result = self._validate_and_process(result)
+        
+        if self._trace:
+            self._trace.log("OUTPUT", "validated_ontology", result)
         
         return result
     

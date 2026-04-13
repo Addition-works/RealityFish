@@ -21,6 +21,7 @@ from openai import OpenAI
 from ..config import Config
 from ..utils.logger import get_logger
 from ..utils.locale import get_language_instruction, t
+from ..utils.trace_logger import TraceLogger, LLMTraceHook
 from .zep_entity_reader import EntityNode, ZepEntityReader
 
 logger = get_logger('mirofish.simulation_config')
@@ -226,11 +227,14 @@ class SimulationConfigGenerator:
         self,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        simulation_id: Optional[str] = None
     ):
         self.api_key = api_key or Config.LLM_API_KEY
         self.base_url = base_url or Config.LLM_BASE_URL
         self.model_name = model_name or Config.LLM_MODEL_NAME
+        self._simulation_id = simulation_id
+        self._trace = TraceLogger("step2c_config_gen", simulation_id) if simulation_id else None
         
         if not self.api_key:
             raise ValueError("LLM_API_KEY 未配置")
@@ -271,6 +275,19 @@ class SimulationConfigGenerator:
         """
         logger.info(f"开始智能生成模拟配置: simulation_id={simulation_id}, 实体数={len(entities)}")
         
+        if self._trace:
+            self._trace.log(
+                "INPUT",
+                "generate_config",
+                {
+                    "simulation_id": simulation_id,
+                    "project_id": project_id,
+                    "graph_id": graph_id,
+                    "simulation_requirement": simulation_requirement,
+                    "entities_count": len(entities),
+                },
+            )
+        
         # 计算总步骤数
         num_batches = math.ceil(len(entities) / self.AGENTS_PER_BATCH)
         total_steps = 3 + num_batches  # 时间配置 + 事件配置 + N批Agent + 平台配置
@@ -297,12 +314,16 @@ class SimulationConfigGenerator:
         num_entities = len(entities)
         time_config_result = self._generate_time_config(context, num_entities)
         time_config = self._parse_time_config(time_config_result, num_entities)
+        if self._trace:
+            self._trace.log("OUTPUT", "time_config_result", time_config_result)
         reasoning_parts.append(f"{t('progress.timeConfigLabel')}: {time_config_result.get('reasoning', t('common.success'))}")
         
         # ========== 步骤2: 生成事件配置 ==========
         report_progress(2, t('progress.generatingEventConfig'))
         event_config_result = self._generate_event_config(context, simulation_requirement, entities)
         event_config = self._parse_event_config(event_config_result)
+        if self._trace:
+            self._trace.log("OUTPUT", "event_config_result", event_config_result)
         reasoning_parts.append(f"{t('progress.eventConfigLabel')}: {event_config_result.get('reasoning', t('common.success'))}")
         
         # ========== 步骤3-N: 分批生成Agent配置 ==========
@@ -325,6 +346,8 @@ class SimulationConfigGenerator:
             )
             all_agent_configs.extend(batch_configs)
         
+        if self._trace:
+            self._trace.log("OUTPUT", "all_agent_configs", {"count": len(all_agent_configs)})
         reasoning_parts.append(t('progress.agentConfigResult', count=len(all_agent_configs)))
         
         # ========== 为初始帖子分配发布者 Agent ==========
@@ -375,6 +398,9 @@ class SimulationConfigGenerator:
         )
         
         logger.info(f"模拟配置生成完成: {len(params.agent_configs)} 个Agent配置")
+        
+        if self._trace:
+            self._trace.log("OUTPUT", "final_params_summary", params.to_dict())
         
         return params
     
@@ -440,18 +466,31 @@ class SimulationConfigGenerator:
         
         for attempt in range(max_attempts):
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=[
+                call_kwargs = {
+                    "model": self.model_name,
+                    "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt}
                     ],
-                    response_format={"type": "json_object"},
-                    temperature=0.7 - (attempt * 0.1)  # 每次重试降低温度
-                    # 不设置max_tokens，让LLM自由发挥
-                )
+                    "temperature": 0.7 - (attempt * 0.1),
+                }
+                if not (self.base_url and "anthropic" in self.base_url):
+                    call_kwargs["response_format"] = {"type": "json_object"}
+                response = self.client.chat.completions.create(**call_kwargs)
                 
                 content = response.choices[0].message.content
+                hook = LLMTraceHook.get()
+                if hook:
+                    hook.record_direct_openai(
+                        caller="SimulationConfigGenerator._call_llm_with_retry",
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt}
+                        ],
+                        model=self.model_name,
+                        temperature=0.7 - (attempt * 0.1),
+                        response_text=content,
+                    )
                 finish_reason = response.choices[0].finish_reason
                 
                 # 检查是否被截断
@@ -585,8 +624,8 @@ class SimulationConfigGenerator:
 - work_hours (int数组): 工作时段
 - reasoning (string): 简要说明为什么这样配置"""
 
-        system_prompt = "你是社交媒体模拟专家。返回纯JSON格式，时间配置需符合模拟场景中目标用户群体的作息习惯。"
-        system_prompt = f"{system_prompt}\n\n{get_language_instruction()}"
+        system_prompt = "You are a social media simulation expert. Return pure JSON format. Time configuration must match the daily routines of the target user groups in the simulation scenario."
+        system_prompt = f"{system_prompt}\n\nIMPORTANT: All output must be in English."
 
         try:
             return self._call_llm_with_retry(prompt, system_prompt)
@@ -702,8 +741,8 @@ class SimulationConfigGenerator:
     "reasoning": "<简要说明>"
 }}"""
 
-        system_prompt = "你是舆论分析专家。返回纯JSON格式。注意 poster_type 必须精确匹配可用实体类型。"
-        system_prompt = f"{system_prompt}\n\n{get_language_instruction()}\nIMPORTANT: The 'poster_type' field value MUST be in English PascalCase exactly matching the available entity types. Only 'content', 'narrative_direction', 'hot_topics' and 'reasoning' fields should use the specified language."
+        system_prompt = "You are a public opinion analysis expert. Return pure JSON format. Note: poster_type must exactly match available entity types."
+        system_prompt = f"{system_prompt}\n\nIMPORTANT: All output must be in English. The 'poster_type' field value MUST be in English PascalCase exactly matching the available entity types."
 
         try:
             return self._call_llm_with_retry(prompt, system_prompt)
@@ -866,8 +905,8 @@ class SimulationConfigGenerator:
     ]
 }}"""
 
-        system_prompt = "你是社交媒体行为分析专家。返回纯JSON，配置需符合模拟场景中目标用户群体的作息习惯。"
-        system_prompt = f"{system_prompt}\n\n{get_language_instruction()}\nIMPORTANT: The 'stance' field value MUST be one of the English strings: 'supportive', 'opposing', 'neutral', 'observer'. All JSON field names and numeric values must remain unchanged. Only natural language text fields should use the specified language."
+        system_prompt = "You are a social media behavior analysis expert. Return pure JSON. Configuration must match the daily routines of the target user groups in the simulation scenario."
+        system_prompt = f"{system_prompt}\n\nIMPORTANT: All output must be in English. The 'stance' field value MUST be one of the English strings: 'supportive', 'opposing', 'neutral', 'observer'. All JSON field names and numeric values must remain unchanged."
 
         try:
             result = self._call_llm_with_retry(prompt, system_prompt)
