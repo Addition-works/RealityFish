@@ -7,6 +7,7 @@ and reddit_analysis_service.py. Stripped to keyword search + username scraping o
 
 import os
 import logging
+import time as _time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
@@ -77,6 +78,24 @@ class XScraper:
     def available(self) -> bool:
         return bool(self.api_token)
 
+    # Each Apify search query returns a limited number of tweets (~20).
+    # For wider time ranges we split into windows and issue one query per window
+    # using UNIX-timestamp operators (since_time / until_time) instead of the
+    # date-string operators (since: / until:) which X often silently ignores.
+    _WINDOW_SECONDS = 6 * 3600  # 6-hour windows
+
+    def _build_time_windows(self, query: str, recency_days: int) -> list[str]:
+        """Split a query across contiguous time windows using UNIX timestamps."""
+        now = int(_time.time())
+        start = now - recency_days * 86400
+        windows = []
+        t = start
+        while t < now:
+            window_end = min(t + self._WINDOW_SECONDS, now)
+            windows.append(f"{query} since_time:{t} until_time:{window_end}")
+            t = window_end
+        return windows
+
     def search_keyword(
         self,
         query: str,
@@ -92,8 +111,7 @@ class XScraper:
             return result
 
         try:
-            since_date = (datetime.now() - timedelta(days=recency_days)).strftime("%Y-%m-%d")
-            enhanced_query = f"{query} since:{since_date}"
+            search_terms = self._build_time_windows(query, recency_days)
 
             run = self.client.actor(self.SEARCH_ACTOR_ID).call(
                 run_input={
@@ -118,19 +136,26 @@ class XScraper:
                     "filter:vine": False,
                     "include:nativeretweets": False,
                     "lang": lang,
-                    "searchTerms": [enhanced_query],
+                    "searchTerms": search_terms,
                     "maxItems": max_results,
-                    "queryType": "Top",
+                    "queryType": "Latest",
                     "min_retweets": 0,
                     "min_faves": 0,
                     "min_replies": 0,
                 },
-                timeout_secs=180,
+                timeout_secs=300,
             )
 
             items = list(self.client.dataset(run["defaultDatasetId"]).iterate_items())
-            result.posts = [self._normalize_tweet(item, query) for item in items]
-            logger.info(f"X keyword search '{query}': {len(result.posts)} tweets")
+
+            seen_ids: set[str] = set()
+            for item in items:
+                pid = str(item.get("id", ""))
+                if pid and pid not in seen_ids:
+                    seen_ids.add(pid)
+                    result.posts.append(self._normalize_tweet(item, query))
+
+            logger.info(f"X keyword search '{query}': {len(result.posts)} tweets across {len(search_terms)} time windows")
 
         except Exception as e:
             result.error = f"X search failed: {e}"
