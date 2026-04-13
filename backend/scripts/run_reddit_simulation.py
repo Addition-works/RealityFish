@@ -447,7 +447,7 @@ class RedditSimulationRunner:
         
         # 如果 .env 中没有，则使用 config 作为备用
         if not llm_model:
-            llm_model = self.config.get("llm_model", "gpt-4o-mini")
+            llm_model = self.config.get("llm_model", "claude-sonnet-4-6")
         
         # 设置 camel-ai 所需的环境变量
         if llm_api_key:

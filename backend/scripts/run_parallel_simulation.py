@@ -1017,7 +1017,7 @@ def create_model(config: Dict[str, Any], use_boost: bool = False):
     
     # 如果 .env 中没有模型名，则使用 config 作为备用
     if not llm_model:
-        llm_model = config.get("llm_model", "gpt-4o-mini")
+        llm_model = config.get("llm_model", "claude-sonnet-4-6")
     
     # 设置 camel-ai 所需的环境变量
     if llm_api_key:
