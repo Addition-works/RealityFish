@@ -255,6 +255,14 @@ python tests/e2e_phase2_test.py         # Full Phase 2 pipeline
 - [ ] **Simulation result persistence** — save simulation metadata (rounds completed, action counts, duration) to a project-level summary for the UI
 - [ ] **Report comparison endpoint** — API route to return both Phase 1 and Phase 2 reports for side-by-side rendering
 
+#### Data privacy & knowledge graph (high priority)
+
+- [ ] **Zep dependency evaluation** — the entire knowledge graph layer (entity storage, relationships, graph search, focus group transcripts) currently runs through Zep Cloud, meaning all scraped entities and thesis content leave the network. Evaluate three paths:
+  1. **Stay on Zep Cloud free/pro** — acceptable for public-data-only research; document the data exposure clearly
+  2. **Zep Enterprise / self-hosted** — Zep offers a self-hosted option; evaluate cost, feature parity, and ops burden
+  3. **Replace Zep with a local graph** — refactor `zep_tools.py`, `zep_entity_reader.py`, `reality_graph_builder.py`, and `zep_graph_memory_updater.py` to use a locally hosted graph DB (e.g. Neo4j, FalkorDB, or a lightweight in-process store like NetworkX + vector search) so confidential data never leaves the host
+- [ ] **Audit all external data flows** — beyond Zep, map every service that sends data externally (LLM API, Apify, Reddit API) and document what data is exposed at each stage, so enterprise users can make informed deployment decisions
+
 #### Infrastructure & polish
 
 - [ ] **CI pipeline** — GitHub Actions for linting, unit tests, and E2E smoke tests
